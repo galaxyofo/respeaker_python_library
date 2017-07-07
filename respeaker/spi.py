@@ -105,7 +105,8 @@ if platform.machine() == 'mips':
                     read |= self.miso.read() << bit
 
                 self.sck.write(self.polarity)
-                # time.sleep(0.5 / self.freq)
+                
+                #time.sleep(0.5 / self.freq)
 
             return read
 
@@ -132,11 +133,17 @@ if platform.machine() == 'mips':
 
         def write(self, data=None, address=None):
             with self.lock:
-                if address is not None:
-                    data = bytearray([0xA5, address & 0xFF, len(data) & 0xFF]) + data + bytearray([crc8(data)])
-                    response = self._write(data)[3:-1]
+                #[HEAD][ADDR][DATA0-DATAn][CRC]
+                if address is not None and len(data) <= 32:
+                    padding = bytearray([0 for x in range(32-len(data))])
+                    data = bytearray([0xA5, address & 0xFF]) + data + padding + bytearray([crc8(data+padding)])
+                    rsp = self._write(data)
+                    if rsp[-1] == crc8(rsp[2:-1]):
+                        response = rsp[1:-1]
+                    else:
+                        response = None
                 else:
-                    response = self._write(data)
+                    response = None
 
                 return response
 
@@ -153,11 +160,12 @@ else:
         def close(self):
             pass
 
-
 spi = SPI()
-
 
 if __name__ == '__main__':
     while True:
-        spi.write('hello\n')
+        haha=spi.write(bytearray([11,12,13,14,15,16]), 0)
+        for byte in haha:
+            print('byte %02X' % byte)
         time.sleep(1)
+
