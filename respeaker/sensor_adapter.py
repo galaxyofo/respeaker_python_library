@@ -15,7 +15,7 @@
  limitations under the License.
 """
 import re
-import respeaker.usb_hid
+#  import respeaker.usb_hid
 from respeaker.spi import spi
 try: # Python 2
     import Queue
@@ -68,38 +68,38 @@ class Sensor:
 
         rsp = spi.write(spi_data)
 
-        def _gesture(value)
-           tmp=("right", "left", "up", "down") 
-           if value == 0 or value > len(tmp) + 1:
-               return None
-           return "G1" + ";" + "status" + ";" + tmp[value + 1]
+        def _gesture(value):
+            tmp=("right", "left", "up", "down") 
+            if value == 0 or value > len(tmp) + 1:
+                return None
+            return "G1" + ";" + "status" + ";" + tmp[value + 1]
 
-       def _human_detector(value)
-           if value == 0:
-               return None
+        def _human_detector(value):
+            if value == 0:
+                return None
 
-           return "K80" + ";" + "status" + ";" + str(value)
+            return "K80" + ";" + "status" + ";" + str(value)
 
-       def _air_quality(value)
-           if abs(Sensor._air_value - value) > 10:
-               Sensor._air_value = value
-               return "Y1" + ";" + "ugm" + ";" + str(value)
-           else
-               Sensor._air_value = value
-               return None
+        def _air_quality(value):
+            if abs(Sensor._air_value - value) > 10:
+                Sensor._air_value = value
+                return "Y1" + ";" + "ugm" + ";" + str(value)
+            else:
+                Sensor._air_value = value
+                return None
 
-       ret = []
-       data = _gesture(rsp[0]) 
-       if data is not None
-           ret.append(data)
-       data = _human_detector(rsp[1])    
-       if data is not None
-           ret.append(data)
-       data = _air_quality(rsp[2] | rsp[3] << 8)
-       if data is not None
-           ret.append(data)
+        ret = []
+        data = _gesture(rsp[0]) 
+        if data is not None:
+            ret.append(data)
+        data = _human_detector(rsp[1])    
+        if data is not None:
+            ret.append(data)
+        data = _air_quality(rsp[2] | rsp[3] << 8)
+        if data is not None:
+            ret.append(data)
 
-       return ret
+        return ret
 
     def cmd(self, cmd):
         match = re.match('(.*);(.*);(.*)', cmd)
@@ -131,10 +131,13 @@ class Sensor:
         data = self.to_bytearray(data)
         Sensor._cmd_queue.put(data)
 
-
+test=Sensor()
 if __name__ == '__main__':
+    import time
     while True:
         try:
+            test.loop()
+            time.sleep(1)
         except KeyboardInterrupt:
             break
 
